@@ -1,200 +1,255 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AIDORA - Scent DNA Quiz</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AIDORA - Unseen Presence</title>
+
+    <link href="https://cdn.jsdelivr.net/gh/sunn-us/SUIT/fonts/static/woff2/SUIT.css" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet" />
+
     <style>
-        /* 1. 디자인 토큰 (브랜드 변수 세팅) */
+        /* 1. Design System & Variables */
         :root {
-            --bg-offwhite: #F8F7F5;
-            --text-main: #222222;
-            --text-sub: #777777;
-            --tile-color-1: #EAE8E3; /* 구겨진 종이 느낌의 명도 */
-            --tile-color-2: #DCDAD5; /* 차가운 새벽 공기 느낌 */
-            --tile-color-3: #D1CFCA; /* 거친 콘크리트 느낌 */
-            --tile-color-4: #C4C2BC; /* 따뜻한 그림자 느낌 */
-            --margin-outer: 24px;
-            --gutter: 16px;
+            --bg-warm: #f2f0ed;
+            --text-dark: #1a1a1a;
+            --accent-amber: #d9b99b;
+            --deep-amber: #c19a74;
+            /* 와이어프레임 타일 컬러 (질감 이미지로 대체될 영역) */
+            --wf-tile-1: #e5e3e0;
+            --wf-tile-2: #dcdad7;
+            --wf-tile-3: #d1cfcb;
+            --font-sans: "SUIT", -apple-system, sans-serif;
+            --font-serif: "Cormorant", serif;
+            --typo-display-l-size: clamp(60px, 10vw, 120px);
         }
 
-        /* 2. 기본 리셋 및 폰트 설정 */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; cursor: none; }
 
         body {
-            background-color: #e5e5e5; /* 모바일 프레임 바깥쪽 배경 */
+            background-color: var(--bg-warm);
+            color: var(--text-dark);
+            font-family: var(--font-sans);
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* 2. Custom Cursor */
+        .cursor-glow {
+            position: fixed; top: 0; left: 0;
+            width: 250px; height: 250px;
+            background: radial-gradient(circle, rgba(193, 154, 116, 0.45) 0%, rgba(193, 154, 116, 0.15) 45%, transparent 75%);
+            border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%);
+            z-index: 1020; transition: width 0.4s ease, height 0.4s ease;
+        }
+
+        /* 3. Navigation */
+        nav {
+            position: fixed; top: 0; left: 0; width: 100%; padding: 32px 5vw;
+            display: flex; justify-content: space-between; align-items: center;
+            z-index: 1000; transition: all 0.5s ease;
+        }
+        nav.scrolled {
+            padding: 20px 5vw; background-color: rgba(242, 240, 237, 0.85);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(26, 26, 26, 0.08);
+        }
+        .nav-logo { font-weight: 800; font-size: 28px; letter-spacing: 0.05em; text-transform: uppercase; }
+        .nav-menu { font-weight: 500; font-size: 14px; letter-spacing: 0.08em; display: flex; align-items: center; }
+        .nav-menu-line { width: 40px; height: 2px; background: var(--text-dark); margin-left: 10px; display: block; }
+
+        /* 4. Luxury Button */
+        .btn-luxury {
+            display: inline-block; margin-top: 48px; padding: 16px 40px;
+            border: 1px solid var(--text-dark); color: var(--text-dark);
+            text-decoration: none; font-size: 13px; font-weight: 500;
+            letter-spacing: 0.15em; text-transform: uppercase;
+            transition: all 0.4s ease;
+        }
+        .btn-luxury:hover { background-color: var(--text-dark); color: var(--bg-warm); }
+
+        /* 5. Hero Section (유지) */
+        .hero {
+            position: relative; height: 100vh; display: flex; flex-direction: column;
+            justify-content: center; padding: 0 5vw; overflow: hidden;
+        }
+        .hero-video-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; filter: sepia(0.05) contrast(1.02); }
+        .hero-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(242, 240, 237, 0.5); z-index: 2; }
+        .hero h1, .hero-desc { position: relative; z-index: 3; }
+        .hero h1 { font-size: var(--typo-display-l-size); font-weight: 800; line-height: 1.1; text-transform: uppercase; }
+        .hero-desc { font-size: 16px; margin-top: 32px; max-width: 600px; line-height: 1.8; }
+
+        /* 6. Asymmetrical Bento Box Collection (새로운 UI 적용) */
+        .section-bento { 
+            padding: 240px 5vw 160px; 
+            max-width: 1600px; 
+            margin: 0 auto;
+        }
+        
+        .bento-header {
             display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 80px;
         }
 
-        /* 3. 모바일 프레임 (피그마로 가져갈 393px 캔버스) */
-        .mobile-frame {
-            width: 393px;
-            height: 852px;
-            background-color: var(--bg-offwhite);
-            position: relative;
-            overflow: hidden;
-            padding: 60px var(--margin-outer);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-        }
+        .bento-header h2 { font-family: var(--font-serif); font-size: 60px; font-style: italic; line-height: 1; margin-bottom: 16px; }
+        .bento-header p { font-size: 16px; letter-spacing: 0.05em; color: var(--text-dark); opacity: 0.7; }
+        .label { font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; display: block; }
 
-        /* 4. 타이포그래피 및 헤더 */
-        .quiz-header {
-            margin-bottom: 40px;
-            animation: fadeIn 1.5s ease-out; /* 은은한 페이드인 효과 */
-        }
-
-        .step-text {
-            font-size: 12px;
-            color: var(--text-sub);
-            letter-spacing: 0.05em;
-            margin-bottom: 12px;
-            display: block;
-        }
-
-        .question-text {
-            font-size: 24px;
-            font-weight: 400;
-            line-height: 1.4;
-            color: var(--text-main);
-            word-break: keep-all;
-        }
-
-        /* 5. 비대칭 벤토 박스 레이아웃 (Grid) */
+        /* 데스크탑 특화: 4컬럼 비대칭 그리드 */
         .bento-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: var(--gutter);
-            animation: fadeIn 2s ease-out forwards;
-            opacity: 0;
+            grid-template-rows: 400px 300px; /* 타일의 물리적 높이 제어 */
+            gap: 24px;
         }
 
-        /* 각 타일의 공통 속성 */
-        .tile {
-            border-radius: 16px;
-            border: none;
-            cursor: pointer;
+        .bento-item {
             position: relative;
+            background-color: var(--wf-tile-1);
+            border-radius: 4px;
             overflow: hidden;
-            transition: transform 0.3s ease, filter 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 40px;
+            transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
         }
 
-        .tile:active {
-            transform: scale(0.97); /* 탭 했을 때 살짝 눌리는 물리적 피드백 */
-        }
+        .bento-item:hover { transform: translateY(-10px); }
 
-        /* 비대칭 그리드 세팅 (크기와 위치를 다르게 배치) */
-        .tile-large {
-            grid-column: 1 / 4;
-            grid-row: 1 / 3;
-            height: 260px;
-            background-color: var(--tile-color-1);
-        }
-
-        .tile-small {
-            grid-column: 4 / 5;
-            grid-row: 1 / 2;
-            height: 120px;
-            background-color: var(--tile-color-2);
-        }
-
-        .tile-tall {
-            grid-column: 3 / 5;
-            grid-row: 2 / 4;
-            height: 260px;
-            background-color: var(--tile-color-3);
-        }
-
-        .tile-medium {
+        /* 대형 타일 (메인 제품 화보) */
+        .item-large {
             grid-column: 1 / 3;
-            grid-row: 3 / 4;
-            height: 120px;
-            background-color: var(--tile-color-4);
+            grid-row: 1 / 3;
+            background-color: var(--wf-tile-1);
         }
 
-        /* 타일 내부 텍스트 (피그마에서는 이미지로 대체될 부분) */
-        .tile-label {
-            position: absolute;
-            bottom: 16px;
-            left: 16px;
-            color: rgba(0, 0, 0, 0.5);
-            font-size: 13px;
+        /* 중형 타일 (리퀴드 글래스 애니메이션/노트 시각화 영역) */
+        .item-medium {
+            grid-column: 3 / 5;
+            grid-row: 1 / 2;
+            background-color: var(--wf-tile-2);
+            align-items: flex-start;
+            justify-content: center;
         }
 
-        /* 페이드인 애니메이션 키프레임 */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* 소형 타일 1 (SOTD 일기) */
+        .item-small-1 {
+            grid-column: 3 / 4;
+            grid-row: 2 / 3;
+            background-color: var(--wf-tile-3);
+            justify-content: center;
+            align-items: center;
+            text-align: center;
         }
+
+        /* 소형 타일 2 (후각 맵핑/기프트) */
+        .item-small-2 {
+            grid-column: 4 / 5;
+            grid-row: 2 / 3;
+            background-color: var(--wf-tile-2);
+        }
+
+        .bento-title { font-family: var(--font-serif); font-size: 40px; margin-bottom: 12px; }
+        .bento-desc { font-size: 15px; line-height: 1.6; opacity: 0.8; word-break: keep-all; }
+        
+        .sotd-quote { font-family: var(--font-serif); font-size: 24px; font-style: italic; line-height: 1.4; }
+        .sotd-author { font-size: 12px; letter-spacing: 0.1em; margin-top: 16px; opacity: 0.6; text-transform: uppercase; }
+
+        /* 7. Animation */
+        .scent-reveal { opacity: 0; filter: blur(10px); transform: translateY(40px); transition: all 1.2s cubic-bezier(0.25, 1, 0.5, 1); }
+        .scent-reveal.is-visible { opacity: 1; filter: blur(0); transform: translateY(0); }
     </style>
 </head>
 <body>
+    <div class="cursor-glow" id="cursorGlow"></div>
 
-    <div class="mobile-frame" id="app-frame">
-        
-        <div class="quiz-header">
-            <span class="step-text">01 / MOOD</span>
-            <h1 class="question-text">당신이 머물고 싶은<br>고요함의 형태는 무엇인가요?</h1>
+    <nav id="navbar">
+        <div class="nav-logo">AIDORA</div>
+        <div class="nav-menu">
+            <span class="nav-menu-text">MENU</span>
+            <span class="nav-menu-line"></span>
         </div>
+    </nav>
 
-        <div class="bento-grid">
-            <button class="tile tile-large" data-scent="woody" onclick="selectMood(this)">
-                <span class="tile-label">바스락거리는 리넨</span>
-            </button>
-            <button class="tile tile-small" data-scent="citrus" onclick="selectMood(this)">
-                <span class="tile-label">빛이 스며드는 틈</span>
-            </button>
-            <button class="tile tile-medium" data-scent="musk" onclick="selectMood(this)">
-                <span class="tile-label">포근한 그림자</span>
-            </button>
-            <button class="tile tile-tall" data-scent="floral" onclick="selectMood(this)">
-                <span class="tile-label">새벽의 젖은 흙</span>
-            </button>
-        </div>
+    <main>
+        <header class="hero">
+            <video autoplay loop muted playsinline class="hero-video-bg">
+                <source src="./video/background.mp4" type="video/mp4" />
+            </video>
+            <div class="hero-overlay"></div>
+            <h1 class="scent-reveal">UNSEEN<br>PRESENCE</h1>
+            <p class="hero-desc scent-reveal" style="transition-delay: 0.15s">
+                말하지 않아도 전해지는, 당신과 나 사이의 공백.<br />
+                조용히 곁에 머물며 당신만의 아우라가 되는 향.
+            </p>
+        </header>
 
-    </div>
+        <section class="section-bento">
+            <div class="bento-header scent-reveal">
+                <div>
+                    <h2>The Scent Archive</h2>
+                    <p>설명 대신 경험으로, 당신의 공간에 스며드는 감각의 조각들</p>
+                </div>
+                <span class="label">Explore All</span>
+            </div>
+
+            <div class="bento-grid">
+                <div class="bento-item item-large scent-reveal" style="transition-delay: 0.1s">
+                    <span class="label" style="margin-bottom: auto;">Signature Scent</span>
+                    <h3 class="bento-title">VOID 16:00</h3>
+                    <p class="bento-desc">서늘한 공기 사이로 비스듬히 떨어지는 오후의 볕.<br>그 고요하고 나른한 찰나를 엮어냈습니다.</p>
+                </div>
+
+                <div class="bento-item item-medium scent-reveal" style="transition-delay: 0.2s">
+                    <span class="label" style="margin-bottom: 24px;">Scent Architecture</span>
+                    <h3 class="bento-title" style="font-size: 32px;">시간에 따라 증발하는<br>질감의 변화</h3>
+                    <p class="bento-desc">[이곳에 리퀴드 글래스가 번지는 애니메이션 배치]</p>
+                </div>
+
+                <div class="bento-item item-small-1 scent-reveal" style="transition-delay: 0.3s">
+                    <p class="sotd-quote">"비 오는 아침,<br>차분한 서재에서의 안정감."</p>
+                    <span class="sotd-author">Scent of the Day</span>
+                </div>
+
+                <div class="bento-item item-small-2 scent-reveal" style="transition-delay: 0.4s">
+                    <span class="label" style="margin-bottom: 16px;">Scent DNA</span>
+                    <h3 class="bento-title" style="font-size: 28px;">당신의 무드</h3>
+                    <a href="#" class="btn-luxury" style="margin-top: auto; text-align: center;">DISCOVER</a>
+                </div>
+            </div>
+        </section>
+    </main>
 
     <script>
-        // 사용자의 향기 프로필 점수를 누적할 객체
-        let userScentProfile = {
-            woody: 0,
-            citrus: 0,
-            musk: 0,
-            floral: 0
-        };
+        // 커서 로직
+        const cursorGlow = document.getElementById("cursorGlow");
+        document.addEventListener("mousemove", (e) => {
+            cursorGlow.style.left = e.clientX + "px";
+            cursorGlow.style.top = e.clientY + "px";
+        });
 
-        function selectMood(element) {
-            // 1. 클릭한 타일의 데이터(향기 계열) 가져오기
-            const selectedScent = element.getAttribute('data-scent');
-            
-            // 2. 점수 누적
-            userScentProfile[selectedScent] += 1;
-            console.log("현재 후각 DNA 데이터:", userScentProfile);
+        // 내비게이션 스크롤 로직
+        const navbar = document.getElementById("navbar");
+        window.addEventListener("scroll", () => {
+            if (window.scrollY > 50) navbar.classList.add("scrolled");
+            else navbar.classList.remove("scrolled");
+        });
 
-            // 3. 시각적 피드백 (선택된 타일 강조, 나머지는 흐려짐)
-            const allTiles = document.querySelectorAll('.tile');
-            allTiles.forEach(tile => {
-                if(tile !== element) {
-                    tile.style.filter = 'grayscale(50%) opacity(0.5)';
-                } else {
-                    tile.style.filter = 'none';
-                    tile.style.border = '1px solid rgba(0,0,0,0.1)';
+        // 스크롤 애니메이션
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add("is-visible");
                 }
             });
-
-            // 4. (임시) 0.8초 후 다음 화면으로 넘어가는 척하는 알림
-            setTimeout(() => {
-                alert(`'${element.querySelector('.tile-label').innerText}' 무드를 선택하셨습니다! \n데이터가 저장되었으며, 다음 질문으로 넘어갑니다.`);
-                // 실제 개발 시에는 여기서 다음 질문 내용으로 DOM을 교체하거나 라우팅 처리
-            }, 800);
-        }
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.scent-reveal').forEach(el => observer.observe(el));
     </script>
 </body>
 </html>
