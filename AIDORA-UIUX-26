@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIDORA - Scent DNA Quiz</title>
+    <style>
+        /* 1. 디자인 토큰 (브랜드 변수 세팅) */
+        :root {
+            --bg-offwhite: #F8F7F5;
+            --text-main: #222222;
+            --text-sub: #777777;
+            --tile-color-1: #EAE8E3; /* 구겨진 종이 느낌의 명도 */
+            --tile-color-2: #DCDAD5; /* 차가운 새벽 공기 느낌 */
+            --tile-color-3: #D1CFCA; /* 거친 콘크리트 느낌 */
+            --tile-color-4: #C4C2BC; /* 따뜻한 그림자 느낌 */
+            --margin-outer: 24px;
+            --gutter: 16px;
+        }
+
+        /* 2. 기본 리셋 및 폰트 설정 */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+        }
+
+        body {
+            background-color: #e5e5e5; /* 모바일 프레임 바깥쪽 배경 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* 3. 모바일 프레임 (피그마로 가져갈 393px 캔버스) */
+        .mobile-frame {
+            width: 393px;
+            height: 852px;
+            background-color: var(--bg-offwhite);
+            position: relative;
+            overflow: hidden;
+            padding: 60px var(--margin-outer);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        /* 4. 타이포그래피 및 헤더 */
+        .quiz-header {
+            margin-bottom: 40px;
+            animation: fadeIn 1.5s ease-out; /* 은은한 페이드인 효과 */
+        }
+
+        .step-text {
+            font-size: 12px;
+            color: var(--text-sub);
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .question-text {
+            font-size: 24px;
+            font-weight: 400;
+            line-height: 1.4;
+            color: var(--text-main);
+            word-break: keep-all;
+        }
+
+        /* 5. 비대칭 벤토 박스 레이아웃 (Grid) */
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--gutter);
+            animation: fadeIn 2s ease-out forwards;
+            opacity: 0;
+        }
+
+        /* 각 타일의 공통 속성 */
+        .tile {
+            border-radius: 16px;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, filter 0.3s ease;
+        }
+
+        .tile:active {
+            transform: scale(0.97); /* 탭 했을 때 살짝 눌리는 물리적 피드백 */
+        }
+
+        /* 비대칭 그리드 세팅 (크기와 위치를 다르게 배치) */
+        .tile-large {
+            grid-column: 1 / 4;
+            grid-row: 1 / 3;
+            height: 260px;
+            background-color: var(--tile-color-1);
+        }
+
+        .tile-small {
+            grid-column: 4 / 5;
+            grid-row: 1 / 2;
+            height: 120px;
+            background-color: var(--tile-color-2);
+        }
+
+        .tile-tall {
+            grid-column: 3 / 5;
+            grid-row: 2 / 4;
+            height: 260px;
+            background-color: var(--tile-color-3);
+        }
+
+        .tile-medium {
+            grid-column: 1 / 3;
+            grid-row: 3 / 4;
+            height: 120px;
+            background-color: var(--tile-color-4);
+        }
+
+        /* 타일 내부 텍스트 (피그마에서는 이미지로 대체될 부분) */
+        .tile-label {
+            position: absolute;
+            bottom: 16px;
+            left: 16px;
+            color: rgba(0, 0, 0, 0.5);
+            font-size: 13px;
+        }
+
+        /* 페이드인 애니메이션 키프레임 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="mobile-frame" id="app-frame">
+        
+        <div class="quiz-header">
+            <span class="step-text">01 / MOOD</span>
+            <h1 class="question-text">당신이 머물고 싶은<br>고요함의 형태는 무엇인가요?</h1>
+        </div>
+
+        <div class="bento-grid">
+            <button class="tile tile-large" data-scent="woody" onclick="selectMood(this)">
+                <span class="tile-label">바스락거리는 리넨</span>
+            </button>
+            <button class="tile tile-small" data-scent="citrus" onclick="selectMood(this)">
+                <span class="tile-label">빛이 스며드는 틈</span>
+            </button>
+            <button class="tile tile-medium" data-scent="musk" onclick="selectMood(this)">
+                <span class="tile-label">포근한 그림자</span>
+            </button>
+            <button class="tile tile-tall" data-scent="floral" onclick="selectMood(this)">
+                <span class="tile-label">새벽의 젖은 흙</span>
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        // 사용자의 향기 프로필 점수를 누적할 객체
+        let userScentProfile = {
+            woody: 0,
+            citrus: 0,
+            musk: 0,
+            floral: 0
+        };
+
+        function selectMood(element) {
+            // 1. 클릭한 타일의 데이터(향기 계열) 가져오기
+            const selectedScent = element.getAttribute('data-scent');
+            
+            // 2. 점수 누적
+            userScentProfile[selectedScent] += 1;
+            console.log("현재 후각 DNA 데이터:", userScentProfile);
+
+            // 3. 시각적 피드백 (선택된 타일 강조, 나머지는 흐려짐)
+            const allTiles = document.querySelectorAll('.tile');
+            allTiles.forEach(tile => {
+                if(tile !== element) {
+                    tile.style.filter = 'grayscale(50%) opacity(0.5)';
+                } else {
+                    tile.style.filter = 'none';
+                    tile.style.border = '1px solid rgba(0,0,0,0.1)';
+                }
+            });
+
+            // 4. (임시) 0.8초 후 다음 화면으로 넘어가는 척하는 알림
+            setTimeout(() => {
+                alert(`'${element.querySelector('.tile-label').innerText}' 무드를 선택하셨습니다! \n데이터가 저장되었으며, 다음 질문으로 넘어갑니다.`);
+                // 실제 개발 시에는 여기서 다음 질문 내용으로 DOM을 교체하거나 라우팅 처리
+            }, 800);
+        }
+    </script>
+</body>
+</html>
